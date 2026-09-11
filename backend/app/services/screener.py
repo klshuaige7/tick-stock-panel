@@ -76,6 +76,89 @@ class ScreenerService:
         """
         _history_cache.clear()
 
+    def _attach_market_columns(self, df: pl.DataFrame, target_date: date) -> pl.DataFrame:
+        """给个股 enriched df 注入当天大盘量能广播列, 供策略做"大盘联动选股"。
+
+        注入列(标量广播到所有行, 单日全市场相同):
+          - index_change_pct:   沪深300当日涨跌幅(小数制, 0.05 = 5%)
+          - index_amplitude:   沪深300当日振幅(小数制)
+          - index_amount:       沪深300当日成交额(元)
+          - index_turnover_rate: 沪深300当日换手率(百分数值, 5 = 5%)
+          - regime_state: 市场环境状态(strong/lean_strong/range/lean_weak/weak)
+          - regime_phase: 情绪周期阶段(冰点/启动/主升/高潮/退潮/修复; 缺失为 null)
+
+        设计:
+          - 幂等: 列已存在则不覆盖, 兼容外部已注入场景。
+          - fail-safe: 空 df 直接返回; 任一数据源缺失填 null, 不影响主流程。
+          - repo 无 get_index_daily 时(测试桩/ETF 等)跳过指数列, 全 null。
+          - 不进实时热路径; 单 symbol 150 天 warmup 计算开销 < 100ms。
+        口径见 CONTRIBUTING.md §3.1。
+        """
+        if df.is_empty():
+            return df
+
+        market_cols = (
+            "index_change_pct", "index_amplitude", "index_amount", "index_turnover_rate",
+            "regime_state", "regime_phase",
+        )
+        missing = [c for c in market_cols if c not in df.columns]
+        if not missing:
+            return df
+
+        # 沪深300当日行情
+        index_change_pct = index_amplitude = index_amount = index_turnover_rate = None
+        get_index_daily = getattr(self.repo, "get_index_daily", None)
+        if callable(get_index_daily):
+            try:
+                idx_df = get_index_daily(
+                    "000300.SH", target_date, target_date,
+                    columns=["date", "symbol", "change_pct", "amplitude", "amount", "turnover_rate"],
+                )
+            except Exception as e:  # noqa: BLE001
+                logger.warning("_attach_market_columns: get_index_daily failed: %s", e)
+                idx_df = pl.DataFrame()
+            if idx_df is not None and not idx_df.is_empty():
+                row = idx_df.row(0, named=True)
+                index_change_pct = row.get("change_pct")
+                index_amplitude = row.get("amplitude")
+                index_amount = row.get("amount")
+                index_turnover_rate = row.get("turnover_rate")
+
+        # regime 当天状态(无则取不晚于 target_date 的最近一天, 覆盖非交易日场景)
+        regime_state = regime_phase = None
+        try:
+            from app.services import regime_builder
+            regime_df = regime_builder.load_regime_history(self.repo.store.data_dir)
+        except Exception as e:  # noqa: BLE001
+            logger.warning("_attach_market_columns: load_regime_history failed: %s", e)
+            regime_df = pl.DataFrame()
+        if regime_df is not None and not regime_df.is_empty() and "date" in regime_df.columns:
+            try:
+                day = regime_df.filter(pl.col("date") == target_date)
+                if day.is_empty():
+                    day = regime_df.filter(pl.col("date") <= target_date).sort("date", descending=True).head(1)
+                if not day.is_empty():
+                    row = day.row(0, named=True)
+                    regime_state = row.get("state")
+                    regime_phase = row.get("phase")
+            except Exception as e:  # noqa: BLE001
+                logger.warning("_attach_market_columns: regime lookup failed: %s", e)
+
+        values = {
+            "index_change_pct": index_change_pct,
+            "index_amplitude": index_amplitude,
+            "index_amount": index_amount,
+            "index_turnover_rate": index_turnover_rate,
+            "regime_state": regime_state,
+            "regime_phase": regime_phase,
+        }
+        new_cols = []
+        for col in missing:
+            v = values[col]
+            dtype = pl.Utf8 if col in ("regime_state", "regime_phase") else pl.Float64
+            new_cols.append(pl.lit(v).cast(dtype).alias(col))
+        return df.with_columns(new_cols)
+
     def _load_enriched_for_date(self, target_date: date) -> pl.DataFrame:
         """从 enriched parquet 读取指定日期的基础数据并即时计算完整指标+信号。
 
@@ -92,6 +175,7 @@ class ScreenerService:
                 inst_cols = [c for c in ["symbol", "name", "total_shares", "float_shares"] if c in df_i.columns]
                 if "name" not in df.columns:
                     df = df.join(df_i.select(inst_cols), on="symbol", how="left")
+            df = self._attach_market_columns(df, target_date)
             return df
 
         # 尝试从 repo 级预计算历史缓存中提取目标日期 (仅 stock: 该缓存为股票专用)
@@ -107,6 +191,7 @@ class ScreenerService:
                         inst_cols = [c for c in ["symbol", "name", "total_shares", "float_shares"] if c in df_i.columns]
                         if "name" not in df.columns:
                             df = df.join(df_i.select(inst_cols), on="symbol", how="left")
+                    df = self._attach_market_columns(df, target_date)
                     return df
 
         # 历史日期: 从 parquet 读取 14 列, 即时计算指标 (慢路径)
@@ -128,6 +213,7 @@ class ScreenerService:
 
         # 即时计算指标: 需要加载历史窗口作 warmup
         df_full = self._compute_enriched_full(df, target_date)
+        df_full = self._attach_market_columns(df_full, target_date)
         return df_full
 
     def load_prior_consecutive(self, as_of: date, consec_col: str) -> pl.DataFrame:
