@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-page-node-id="eBy6sY6cKFqmWepNwlNs3H">
+<head data-page-node-id="FOnc1jDRNbHN2heTZwG2hy">
+<meta charset="UTF-8" data-page-node-id="acoZZwDLW3enlCD2pzsWcx">
+<meta name="viewport" content="width=device-width, initial-scale=1.0" data-page-node-id="nf0VIsdL1PZJEmQNdRXM8q">
+<title>A股三大免费行情源深度对比：东财 / 腾讯 / 新浪</title>
+<style>
+  :root {
+    --bg: #f7f8fa; --card: #ffffff; --border: #e4e7ec;
+    --text: #1f2329; --muted: #6b7280;
+    --em: #d64541; --tx: #2b6cb0; --sina: #c07f00;
+    --ok: #16a34a; --warn: #d97706; --bad: #dc2626;
+    --head: #f1f3f6;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+    font-family: "Microsoft YaHei", "PingFang SC", -apple-system, sans-serif;
+    font-size: 14px; line-height: 1.65; }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 28px 20px 60px; }
+  h1 { font-size: 24px; margin: 8px 0 4px; }
+  .sub { color: var(--muted); font-size: 13px; margin-bottom: 22px; }
+  h2 { font-size: 18px; margin: 34px 0 12px; padding-left: 10px; border-left: 4px solid #3b82f6; }
+  h3 { font-size: 15px; margin: 20px 0 8px; }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px; margin: 12px 0; }
+  table { width: 100%; border-collapse: collapse; margin: 10px 0; background: var(--card); font-size: 13px; }
+  th, td { border: 1px solid var(--border); padding: 7px 10px; text-align: left; vertical-align: top; }
+  th { background: var(--head); font-weight: 600; white-space: nowrap; }
+  td.c, th.c { text-align: center; }
+  .tag { display: inline-block; padding: 1px 8px; border-radius: 20px; font-size: 12px; margin: 1px 2px; }
+  .t-em { background: #fdeceb; color: var(--em); }
+  .t-tx { background: #e8f0fb; color: var(--tx); }
+  .t-sina { background: #fdf3e0; color: var(--sina); }
+  .t-ok { background: #e7f6ec; color: var(--ok); }
+  .t-warn { background: #fdf3e0; color: var(--warn); }
+  .t-bad { background: #fdecec; color: var(--bad); }
+  .t-gray { background: #eef0f3; color: var(--muted); }
+  code { background: #f1f3f6; padding: 1px 6px; border-radius: 4px;
+    font-family: Consolas, "Courier New", monospace; font-size: 12.5px; color: #b83a8c; }
+  pre { background: #2b303b; color: #d8dee9; padding: 12px 14px; border-radius: 8px;
+    overflow-x: auto; font-size: 12.5px; line-height: 1.5; }
+  pre code { background: none; color: inherit; padding: 0; }
+  .hl { background: #fffbe6; padding: 0 3px; border-radius: 3px; }
+  .note { color: var(--muted); font-size: 12.5px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px; }
+  .pill-row th.c { font-size: 13px; }
+  .legend { margin: 6px 0 0; }
+</style>
+</head>
+<body data-page-node-id="FMyztdpyhH8CIR4ChKtqD6">
+<div class="wrap" data-page-node-id="3ZE8VyCqYfCYHevZL0RSgK">
+
+<h1 data-page-node-id="aFgQb2rkupUhr4VXKffu4Q">A股三大免费行情源深度对比：东方财富 / 腾讯 / 新浪</h1>
+<div class="sub" data-page-node-id="F2DDkFogp0FZBDcbtCR1gU">
+实测时间：2026-09-08 23:10（收盘后）· 样本：蒙娜丽莎 sz002918、贵州茅台 sh600519、万达轴承 bj920002、上证指数 sh000001<br data-page-node-id="epMQEP3k75yFxn7Tl547bz">
+方法：Python 直连探测 + WebFetch 异构通道交叉验证，全部结论均有原始返回 JSON 存档（同目录 probe_results*.json）
+</div>
+
+<!-- ============ TL;DR ============ -->
+<h2 data-page-node-id="Fy6QuLTcPzMb4cJELX8bPA">① 一句话结论</h2>
+<div class="card" data-page-node-id="dqXXAD1vxLD0GUAFlhH88U">
+  <b data-page-node-id="H5mCABImYSm6sAjpjW23TE">东财字段最全、能力最广，但风控最狠；腾讯接口最稳、单次返回信息密度最高（88 字段）；新浪最轻、唯一提供精确到股的成交量，但接口生态在持续萎缩（逐笔已死、资金流只剩一个）。三者对"同一指标"普遍存在<span class="hl" data-page-node-id="oA4nX1ozuLCbBBp7hcKPzp">单位、精度、时间戳语义、字段覆盖</span>四层差异，混用时必须做单位归一化层。</b>
+</div>
+
+<!-- ============ 定位总览 ============ -->
+<h2 data-page-node-id="e9mWlUZcCsw8DT3ftkZQGF">② 三源定位总览</h2>
+<table data-page-node-id="d4ANqjdWdPsBwftMh8HyPD">
+  <tr data-page-node-id="6mJuC5RF6knjhLtx3TNZ80"><th style="width:130px" data-page-node-id="xETgO2unegnU4w4U5aej9A"></th><th data-page-node-id="8BlCLfyEhRVcjziNTvDjpX">东方财富 push2 家族</th><th data-page-node-id="NNOYr1QgodCcDehzlNK54d">腾讯 qt.gtimg.cn / ifzq</th><th data-page-node-id="2EDlwIp7rpJigTgKF6XF0B">新浪 hq.sinajs.cn / vip.stock</th></tr>
+  <tr data-page-node-id="bLrdHygksVcOGP3Mp2FSKj"><th data-page-node-id="GNLRiNIGSHHO7mit4EgBCC">主域</th><td data-page-node-id="lSCh2gCwrQUDQEpxX4fzAP">push2 / push2his / push2ex.eastmoney.com（含 90./23. 等数字镜像）</td><td data-page-node-id="TImimnzcWpo8DvwInJqZFv">qt.gtimg.cn（快照）<br data-page-node-id="tS2ZafWweB6ncIwgF2SK2C">web.ifzq.gtimg.cn（K线/分时）</td><td data-page-node-id="kHjCAagA7JZja6EpE5Yy7l">hq.sinajs.cn（快照）<br data-page-node-id="S7XGCUCCq0EBbQNBa3UoFq">quotes.sina.cn（K线）<br data-page-node-id="G4JbI1tjzbBaOQc2JjoB7V">vip.stock.finance.sina.com.cn</td></tr>
+  <tr data-page-node-id="gRrGbBFXwIKpkbLtsFvJ1Q"><th data-page-node-id="SMDm9sPEAqUAdgzFu5OkT5">返回格式</th><td data-page-node-id="0HwUQeKCsem76cWNbjPUOm">UTF-8 JSON，<b data-page-node-id="F9xMS7jTM8bpp3UPQHnnM8">字段可自选</b>（fields 参数按需取）</td><td data-page-node-id="LjOwgUpj2xCIFYBhlDfBlD">GBK 文本（快照，~ 分隔 88 字段）+ JSON（ifzq）</td><td data-page-node-id="BP4i2kzImR7Fyuz6cNu8HF">GBK 文本（逗号分隔固定 33 字段）+ JSON</td></tr>
+  <tr data-page-node-id="e8foGT5GAyvnVLqF4jalmy"><th data-page-node-id="g06u3FDfEyzdgdryAgzSqC">认证/风控</th><td data-page-node-id="BdCas6FCrOiJ4WPwO2ieVm"><span class="tag t-bad" data-page-node-id="4VcxKVNPTwyCYisdhj0vIa">最严</span> 连续请求即 RemoteDisconnected 断连封出口 IP，实测 35s 冷却无效；部分接口校验 ut token</td><td data-page-node-id="6hfC6bNqRudDC2JGyHGXyg"><span class="tag t-ok" data-page-node-id="FlRLwr16L4NAdIINqpahOV">最宽</span> 无 Referer 要求，实测零封禁</td><td data-page-node-id="LzyMapG4SuDXzldLDukZck"><span class="tag t-warn" data-page-node-id="CFqhynIMRQeE6kpL5txK0g">强 Referer</span> hq.sinajs.cn 必须带 <code data-page-node-id="EG8jr0W0T05kgYjatcnkQX">Referer: https://finance.sina.com.cn</code>，否则 <b data-page-node-id="F5MdqJwDdy0V4axICDqduB">403 Forbidden</b>（实测确认）</td></tr>
+  <tr data-page-node-id="rxPfXTolAUkx9gsfwamu4e"><th data-page-node-id="ylUbSCnqO96yqk7EQZ8HZm">编码坑</th><td data-page-node-id="SbelFfUa9dCRV92Sm8b47X">无（UTF-8）</td><td data-page-node-id="hPMEsh2gQ9N3XUNw5VgBct">GBK 解码</td><td data-page-node-id="wvUgyq26UroNARyV0WCqI2">GBK 解码</td></tr>
+  <tr data-page-node-id="R7zBufL2aYenh7lDPyZ5Ao"><th data-page-node-id="ItyL6wjquyMTW0PibpiiUe">刷新级别</th><td data-page-node-id="SLi38lKmeNRhnLqT7S8VCy">快照约 3s 一跳；另有 push2delay（15 分钟延迟源，字段名相同）</td><td data-page-node-id="rofwzEKJ7Zk9vRhW9A09u1">快照约 3-5s</td><td data-page-node-id="iJwsI0JVQni4VeaxIzVP4R">快照约 3-6s</td></tr>
+  <tr data-page-node-id="5aErgfJIbDgxd4ljktGDoY"><th data-page-node-id="i6uTJ3agCSuUGF0Iai1H3H">适用角色</th><td data-page-node-id="Ve3twjoU4J7Z1mSy7OKvsU"><b data-page-node-id="TTwqjYx4LN8Inel4MUZDiK">主数据源</b>（字段+资金流+盘后定价+涨跌停）</td><td data-page-node-id="QfA5Z2d3NGQwMCLY1qpRTb"><b data-page-node-id="dkwOVg0sXfD6TpBnKMm9Hf">容灾源</b>（最稳+衍生指标全）</td><td data-page-node-id="Dx10CxMTcDVX6Na7Frh7hr"><b data-page-node-id="OmGmQXduTefZucljCWpp24">轻量校验源</b>（精确股数+带宽最低）</td></tr>
+</table>
+
+<!-- ============ 能力矩阵 ============ -->
+<h2 data-page-node-id="GwYU4wX7wOjAigkGBAxckY">③ 接口能力矩阵（实测核实）</h2>
+<table data-page-node-id="IYRvfOXXP60hIDXXHdKvxM">
+  <tr data-page-node-id="3aBwosCpot3YcCJ1G0TFTG"><th style="width:150px" data-page-node-id="vXCVjd6354RgpA2wNZi12A">能力</th><th class="c" data-page-node-id="Qu4EV6Wdpud0EeXOBYfyPN">东方财富</th><th class="c" data-page-node-id="aM2CSPO8ComtvOkxMCBJFe">腾讯</th><th class="c" data-page-node-id="x3mZGdSa7Z1irbNB9ZqAk0">新浪</th><th data-page-node-id="hEnIGKKDUEPBCxotaeyPSI">备注</th></tr>
+  <tr data-page-node-id="AuHpm4wEvzh8AlfeHUYcvi"><td data-page-node-id="FesyFCLJxb4LTDgchVCY64">实时快照（价/量/额/OHLC）</td><td class="c" data-page-node-id="0w0OvmAfDoBEUSosBSynBF"><span class="tag t-ok" data-page-node-id="wZSYsstgxfnLDuHfbOuDlg">✔</span></td><td class="c" data-page-node-id="sdfQJ8HNuwlGvPW55cwjiC"><span class="tag t-ok" data-page-node-id="oCUgJ7Z1KohkgkqXAp7p4Z">✔</span></td><td class="c" data-page-node-id="d0pthtaHlfqn68zWEHOvPO"><span class="tag t-ok" data-page-node-id="QxQwABpdrrLHE7aFA9rsCB">✔</span></td><td data-page-node-id="ddYCFuTCqIsLhs4FnlgdQM">三家都有</td></tr>
+  <tr data-page-node-id="cwoNswzz4aHS9aJocfKCqW"><td data-page-node-id="bNJNInriObkmdEiqVzeQMF">五档盘口</td><td class="c" data-page-node-id="uhlNdM3gzdo94Jj9znjIRk"><span class="tag t-warn" data-page-node-id="BdhAh5gfYQeZNtiL47zj6p">✔ 仅盘中</span></td><td class="c" data-page-node-id="UXJAJAwQFuqZsmhkjocf1C"><span class="tag t-ok" data-page-node-id="5QR1RFcnhWWCgr0stmvAx0">✔</span></td><td class="c" data-page-node-id="oXJOB3wzJWNg5GVIya3zvL"><span class="tag t-ok" data-page-node-id="XtDLGleI8OM3B6q0KuUkTA">✔</span></td><td data-page-node-id="JAhQwFjwMwRtSeuGVzFB3c"><b data-page-node-id="VTkiCu8GL4l23a0IDZeYo8">实测差异</b>：东财 push2 收盘后直接省略 f31-f40 键；腾讯/新浪盘后仍保留收盘时刻挂单</td></tr>
+  <tr data-page-node-id="2N4lvDUqd99fz9auxGAqix"><td data-page-node-id="hnXLbHqvFDUW9Da3gEgRtv">衍生指标（PE/PB/市值/量比/委差/换手）</td><td class="c" data-page-node-id="PjAhfyIfFSsh9Zo1mR6taI"><span class="tag t-ok" data-page-node-id="q7OBFQ63JNaoF1gIS3NeGp">✔ 按需选</span></td><td class="c" data-page-node-id="ahseHfnADM40mwZOhOOquR"><span class="tag t-ok" data-page-node-id="LLpfuWicEnmC6QMZadE4AH">✔ 全量88字段自带</span></td><td class="c" data-page-node-id="ZOFtAUA7Ty3R0Dp32yO5HD"><span class="tag t-bad" data-page-node-id="17gBeCBIgfHMP2nJ3xlC9L">✘</span></td><td data-page-node-id="igUI8GJUk6MHqwF9D89EzA">新浪快照只有 33 个固定字段，衍生指标全要自己算</td></tr>
+  <tr data-page-node-id="VVMrBeGzhUvVO9tT0AHLdb"><td data-page-node-id="pTqoZNCcz1E1Z2ANElYeZd">涨跌停价（接口直出）</td><td class="c" data-page-node-id="p0iiuKdesLFC6pWRruM5BF"><span class="tag t-ok" data-page-node-id="oASLgr1bIuBeGVWF6luFK7">✔ f51/f52</span></td><td class="c" data-page-node-id="drIiwlRShC7VMwBrUFC0LZ"><span class="tag t-ok" data-page-node-id="esEGFA7VjtMysH3yBxdAtb">✔ 第47/48位</span></td><td class="c" data-page-node-id="zGCkCgpufsdrGTtQzPOGzy"><span class="tag t-bad" data-page-node-id="ko7NA3PbBxcUp7O8Y710uJ">✘</span></td><td data-page-node-id="hkmx3c2DenGbD8Radm8Yq2">新浪需按前收盘 ×±10%/20%/30% 自算（ST/科创/创业/北交所规则不同）</td></tr>
+  <tr data-page-node-id="8ZK8Bp1o774AV5FitVAgaW"><td data-page-node-id="2cGBSRF5eaoc1GuNdK9icF">当日分时（含均价线）</td><td class="c" data-page-node-id="BS8FchFNPWX1uoQKa6VrP2"><span class="tag t-ok" data-page-node-id="agDvDd1ZsnBL6R9s69fjCW">✔ trends2 带均价</span></td><td class="c" data-page-node-id="4VozNkNaJCmVK4pbv8ebFR"><span class="tag t-warn" data-page-node-id="xrwFdJ1vV3HJbEHlwM8KjM">✔ 无均价</span></td><td class="c" data-page-node-id="F6ODofwOL15mmujIaha8gN"><span class="tag t-bad" data-page-node-id="RGzB3T2abeDykDHIJxCJRV">✘</span></td><td data-page-node-id="fo6zihTpmLpQHT4akQJrDS">新浪只能拿 1 分钟 K 近似；腾讯分时 4 元组需自算均价</td></tr>
+  <tr data-page-node-id="TxIeXMCw4OjGbYu0YyZ8yS"><td data-page-node-id="BlC4KdaOnF4mRG7c19Qn4l">深市盘后定价时段（15:05-15:30）</td><td class="c" data-page-node-id="PVMCyXVJb8bWtMyMMZY2rk"><span class="tag t-ok" data-page-node-id="KDcE2E1PbU1n4rTKisivjs">✔ 271条</span></td><td class="c" data-page-node-id="R3BGEoUbm5rTUtwFZusEmK"><span class="tag t-ok" data-page-node-id="1jeX346Zjt63FaLyxBCAiy">✔ 267条</span></td><td class="c" data-page-node-id="b07nCbp9qeHDXuCmBSDFFb"><span class="tag t-bad" data-page-node-id="p7soSDI1FDLqL9ULy8IiXz">✘</span></td><td data-page-node-id="LKRmuR4kP6gDMEOhzdfpIQ">实测条数不同：东财把 15:01-15:30 每分钟都列，腾讯只列盘后实际分钟</td></tr>
+  <tr data-page-node-id="xbhb8kCNH3FpO11wIHC77G"><td data-page-node-id="HKQCg7GDSBmysxjDdi7CYm">历史日 K（可复权）</td><td class="c" data-page-node-id="CCN315vfww7fIIhyGerJPl"><span class="tag t-ok" data-page-node-id="zyt5592e1HrZhXAKnnMqJ1">✔ fqt=0/1/2/3</span></td><td class="c" data-page-node-id="rMq6jnM5ANc9chA4C4Mw0h"><span class="tag t-ok" data-page-node-id="InGeVfRxbeHhGb8ie84DLK">✔ qfq/hfq/none</span></td><td class="c" data-page-node-id="NgkuhpaoG3HPTnR0b4Ssul"><span class="tag t-warn" data-page-node-id="u1aAd3FQ2qU6Bb2XHSAB5m">✔ 仅不复权</span></td><td data-page-node-id="4N2cpkhu67TRD0J1X7RLb3">新浪 getKLineData 无复权参数；做前复权连续性只有东财/腾讯可选</td></tr>
+  <tr data-page-node-id="0ggeATUuuuwXLWg41NN4j1"><td data-page-node-id="GfxVd6rONz4dv17X5g47wg">分钟级 K（1/5/15/30/60）</td><td class="c" data-page-node-id="FavfCGeMCJccFobEGuXGNn"><span class="tag t-ok" data-page-node-id="iGuvLCJiAqp8QzWa9THds1">✔ klt=1/5/…</span></td><td class="c" data-page-node-id="xCAsfq2f6EsFaLRSBX1lPs"><span class="tag t-ok" data-page-node-id="ZlCoyWYRYBUcE27xFy15Is">✔ mkline</span></td><td class="c" data-page-node-id="4SEFpEQoFoPN8DebGXdNLz"><span class="tag t-ok" data-page-node-id="pq080QAAjX7sKeptSINP7l">✔ scale=1/5/…</span></td><td data-page-node-id="L3lgcF3c6wCDFFEQl2KzJR">新浪 1 分钟实测可用；但新浪分钟 K 也是不复权</td></tr>
+  <tr data-page-node-id="b7ySS43EDD5vrG34UERizy"><td data-page-node-id="LMaU46TD5ijYnSpNjQnRxV">逐笔成交 tick（回放）</td><td class="c" data-page-node-id="o99AyctG3a8JSrqTWJq4DA"><span class="tag t-warn" data-page-node-id="dYhcFYSNhIdsHsfPagrbdw">✔ 当日50笔/页</span></td><td class="c" data-page-node-id="2iyJk7zzQjzvy1DY10Og1G"><span class="tag t-bad" data-page-node-id="qfQDXRWCYARx85ANz6CwAm">✘ 已无公开</span></td><td class="c" data-page-node-id="WcY9f4B438ivVVPWLbZCXE"><span class="tag t-bad" data-page-node-id="I2SBlLlRic5ZSFHKmK3aIm">✘ 已废</span></td><td data-page-node-id="6fiiMOPj8gBA1aEO6qzGR2"><b data-page-node-id="n9CAV00DhtEbl3NhLeY7Qy">实测</b>：腾讯公开的 day/query 实为分时非逐笔；新浪 getDetailData 返回 <code data-page-node-id="yhPZjQdWPebKMjn2Vm79eb">Service not valid</code></td></tr>
+  <tr data-page-node-id="RigncK0mx23cMjqkCd2BwI"><td data-page-node-id="z5rCxQG8Q5ThnwELzvorBp">个股资金流（主力/超大/大/中/小单）</td><td class="c" data-page-node-id="4Ni2UYyIEVW4pZsdvMTOsr"><span class="tag t-ok" data-page-node-id="uqZFRBUjzY6hvtUCa948DM">✔ 最全</span></td><td class="c" data-page-node-id="UkGE2BDZd4BxKZRhC1Ht5s"><span class="tag t-bad" data-page-node-id="i8xHQO1kJwDQpFCetfP42U">✘ 已废</span></td><td class="c" data-page-node-id="4WQC3Zl22wmY5AIVDYUj1Z"><span class="tag t-warn" data-page-node-id="7CPKQHDB1nINkSzpG3NUa5">✔ 历史日级</span></td><td data-page-node-id="ySKZEYvtadPVauBpxVPKFY"><b data-page-node-id="NWMEl3ptUHk6govtF6RGBH">实测</b>：腾讯 fflow 返回 <code data-page-node-id="6RuaDyA7BqldQh8e4OWG1r">Can't load controller:FundflowController</code>；新浪 MoneyFlow.ssl_qsfx_lscjfb 仍返回有效数据（r0-r3 档位分布）</td></tr>
+  <tr data-page-node-id="WlVSJMZ9lPPLrJV2NHzxYN"><td data-page-node-id="UXKfQ8X5ODnNNohcRLFTvw">北交所（92xxxx/8xxxx/4xxxx）</td><td class="c" data-page-node-id="HrSB5QDEfYhf0eb16Tzo7A"><span class="tag t-ok" data-page-node-id="RSJGknd36CaBaTmZVLSRtH">✔ secid 0.920002</span></td><td class="c" data-page-node-id="IkEv6vb9dVvN3OyvgIhFsk"><span class="tag t-ok" data-page-node-id="FbJdWEnTYqpyDqnQBEY1Y2">✔ bj 前缀</span></td><td class="c" data-page-node-id="VJI7YpE9NFaYNEAQKVVTS6"><span class="tag t-ok" data-page-node-id="0qQSKc6tJb7NVGii0DmCOP">✔ bj 前缀</span></td><td data-page-node-id="Icw5QCW43maHN4SCBSchTS">三家实测全支持（万达轴承 920002 均返回完整数据）</td></tr>
+  <tr data-page-node-id="bT3CaHv1u3kVuMW66kyPDT"><td data-page-node-id="ZCxz6WYVOqUH9BkUwupnCA">指数快照</td><td class="c" data-page-node-id="mB3OVDV9uOjdn9UPOYzkXH"><span class="tag t-ok" data-page-node-id="ktr0P7eMuKfb05MUGy4EOJ">✔ secid 1.000001</span></td><td class="c" data-page-node-id="xOwx42q80VX0ndyfssBTnk"><span class="tag t-ok" data-page-node-id="kkuZrE5t3MeLaxc1ys3GLN">✔ sh000001</span></td><td class="c" data-page-node-id="DrnykQ10bBXjP5a0VuB0BL"><span class="tag t-ok" data-page-node-id="Px0sLeq6K3cfc3Og06LKtC">✔ s_sh000001</span></td><td data-page-node-id="dDt2eYceC84t1FWpRQnXll">新浪 s_ 前缀为 6 字段简版（无五档）</td></tr>
+  <tr data-page-node-id="fEADKFsDayHSGBOhhmJ8jU"><td data-page-node-id="g2kEosGX6n2O9uEn6gSVDx">竞价已匹配/未匹配量</td><td class="c" data-page-node-id="Ui0HcvAzbfhUjLFK5Q7iRn"><span class="tag t-warn" data-page-node-id="svUZBv1Mj3QBFccx1XbqK4">部分(f 系列字段)</span></td><td class="c" data-page-node-id="ZlPu3bfkpo3ioIrje2MUZZ"><span class="tag t-bad" data-page-node-id="2ocXrGFVRWC9WlHRV1xE5V">✘</span></td><td class="c" data-page-node-id="G9OnZBzaTxJtEzeI3vegM1"><span class="tag t-bad" data-page-node-id="W57AXL7DYsaZm0UzxCJX16">✘</span></td><td data-page-node-id="GdIJFL5YH2f7hy7iTXhF5i">免费源都无完整竞价簿；你现有东财 provider 的方案已是最优解</td></tr>
+</table>
+<p class="note legend" data-page-node-id="BICC8XU2X14aDncDzHPlCC">✔ = 实测可用 / ✘ = 实测不可用或已下线 / 灰色备注 = 实测细节</p>
+
+<!-- ============ 同功能数据差异 ============ -->
+<h2 data-page-node-id="9tB9VnlFwBBIjbgwTYdZb1">④ 同功能接口，数据真的不一样吗？——实测：四层差异</h2>
+
+<h3 data-page-node-id="lEW5wB4G6tBXYezPQi0za2">4.1 同一时刻快照横向对比（2026-09-08 收盘，sz002918）</h3>
+<table data-page-node-id="qZfk43qQHxIeFXt6a3XpQF">
+  <tr data-page-node-id="laN5wAiHOPthWFUIva2z03"><th style="width:150px" data-page-node-id="U9s0P2wLOAGSAKtDyhlDeE">字段</th><th data-page-node-id="0cNrEnHGugJIF4xZXcJo8B">东财 push2</th><th data-page-node-id="HoPI9vWe5eGN2kkIyUldgH">腾讯 qt</th><th data-page-node-id="yh18qvjxU3H6DJ594xSCxY">新浪 hq</th><th data-page-node-id="mGzbgGkEJbB5e1uPV281bj">差异结论</th></tr>
+  <tr data-page-node-id="FLz7tQFfL6AUOBmezhfZ1Z"><td data-page-node-id="e0DsN8mhqeaUUKRikZsRQE">最新价</td><td data-page-node-id="kJOO7OhRvbWT0Mdz8Qt6Lr">10.99</td><td data-page-node-id="NWeq2NaMnWg2jw3IRHlmja">10.99</td><td data-page-node-id="9lFVV9B4db5fKA40wlB4pZ">10.990</td><td class="c" data-page-node-id="1e7GA8rRtfO8T4FD8yLZwJ"><span class="tag t-ok" data-page-node-id="pKwwhFbDea6XiI4V6WYCce">一致</span></td></tr>
+  <tr data-page-node-id="agIh0w3tcWzlLzZTnRYrDZ"><td data-page-node-id="xGrAced2wNJp8UCCLRdb3o">成交量</td><td data-page-node-id="OEBboZgXHwVbdPeFB4rJTg">101817 <b data-page-node-id="rAbGMmu94f7IdyP0jNQFss">手</b></td><td data-page-node-id="JMHG11T1JRwAL1YgBysiUe">101817 <b data-page-node-id="SqijFaspsrPSLMNz13Ji0y">手</b></td><td data-page-node-id="H6kCn5gDHBWkVGTbaglwRw">10181675 <b data-page-node-id="yQP0Jpm8exVG7ZZuuUcL38">股</b></td><td class="c" data-page-node-id="8klGroQVtH8O39awBgVXGr"><span class="tag t-bad" data-page-node-id="qJr1CLSUSYWd08KLYOqLtj">单位不同</span></td></tr>
+  <tr data-page-node-id="fkBDnd5zCWfkjILAM57cLe"><td data-page-node-id="6GmX01l1CP3eJaoB1HYpcD">成交量口径</td><td colspan="2" data-page-node-id="yDVLHVk3NNCyeiWR2ShASM">四舍五入到「手」（101816.75 → 101817）</td><td data-page-node-id="9pRNDPEqJXGzD0kq4iKf1F">精确到「股」</td><td class="c" data-page-node-id="TyqLGxOdvcRZaMJHmAHBfw"><span class="tag t-warn" data-page-node-id="exRfJAGYfipftSZioZxg5K">精度不同</span></td></tr>
+  <tr data-page-node-id="LGqos1kZOgmhSbGK6fZz1x"><td data-page-node-id="LZezDB4g1phLcoVYmzKYj3">成交额</td><td data-page-node-id="vwKWQxP7BnhC0osJpfZUuu">111624181.75 元</td><td data-page-node-id="HoSrwoJCPzpXrPqpNhoAz5">11162 万（第37位，万级整数）<br data-page-node-id="jaV1QjodBFvrZqZS520Noi">第35位组合字段=111624182 元<br data-page-node-id="WI5q89m4FiAfaKT6kvn7eB">第57位=11162.4182 万</td><td data-page-node-id="vLrdMMGX0oMe5Vz45mgjrI">111624181.750 元</td><td class="c" data-page-node-id="nKZBWDkycNMt5qrjMd6NYg"><span class="tag t-bad" data-page-node-id="ZgpSBoGOs7xHDGHqkEqXOv">精度不同</span></td></tr>
+  <tr data-page-node-id="NkJ7nb2ZWPsGgCuGzyCIhd"><td data-page-node-id="Hsho6QK1LG3tvZHknFyDMs">时间戳语义</td><td data-page-node-id="bzmRHDuuWriAQNIDN3ViL2">f86 = 15:34:09<br data-page-node-id="RXmFaCx8WUFqSRzTIXlzqK">（行情定格时间）</td><td data-page-node-id="Wfydim3b77yESWX6qHAEIx">20260908161409<br data-page-node-id="HzkmjaLccVYfxNdAebV2iz">（服务器更新时间，盘后仍在变）</td><td data-page-node-id="oIviyPJAgD3cXClvTzNfAt">2026-09-08 + 15:35:15<br data-page-node-id="MXUB4kKF1G45txV5xmitoD">（行情时间）</td><td class="c" data-page-node-id="cdOlYBD5WCdZLe7stHdJNR"><span class="tag t-bad" data-page-node-id="FSUExxgEMVVexSFEcHvh4o">语义不同</span></td></tr>
+  <tr data-page-node-id="GediWGrgMvol0oUZhgDkty"><td data-page-node-id="k9IOwk2nLqhh1kQc0G63Wv">买一档</td><td data-page-node-id="byGGlnaS2sgdcMk53VA7r7">10.99 / 501 手（f19/f20，需<b>不传 fields</b>）</td><td data-page-node-id="OeUZpkfK18e0tenjtiIyGA">10.99 / <b data-page-node-id="QZDs7HK0vDLoOON8Fai28H">501 手</b></td><td data-page-node-id="EaMEBqtlIUIFHVLW6NN2Hx">10.990 / <b data-page-node-id="Q6BjYWGJ78YJw6WhwGmeER">50100 股</b></td><td class="c" data-page-node-id="9zxJdsL74VveVfKMMi8cZa"><span class="tag t-warn" data-page-node-id="M2KA2N3z6GejRaZR3lhz3K">单位不同+东财取法特殊</span></td></tr>
+  <tr data-page-node-id="oM5gLdV3cjrHWOrtzRLjDG"><td data-page-node-id="HnuxmyB3MaMW5idrkfnJts">涨跌停价</td><td data-page-node-id="1Ri3j6ASzhuMqEEmxQPQH8">12.00 / 9.82（f51/f52）</td><td data-page-node-id="mA6Ae9ug3khM6nYrDmYmXG">12.00 / 9.82（第47/48位）</td><td data-page-node-id="FppPBisXb7dUgzBHpJ0vmF">无，需自算</td><td class="c" data-page-node-id="iQ1DlLUhPjYqLwSRLrvV4F"><span class="tag t-warn" data-page-node-id="VJ0f5mVuql1RYFmVSTWsXY">覆盖不同</span></td></tr>
+  <tr data-page-node-id="OKdFqfqUKBC3gvS2CQOIZM"><td data-page-node-id="SYEP7tVewV1qrA0SB3FscJ">外盘/内盘</td><td data-page-node-id="dVkhgrgELbiFmGsvsMbEHY">f49 / <b>f161</b> = 51113 / 50704（f50 实为量比）</td><td data-page-node-id="j3G4FZKxu9ezQgYDOlGVxl">第7/8位 = 51113/50704</td><td data-page-node-id="qqDdn8o7anmu4I4QZC2Q4e">无</td><td class="c" data-page-node-id="xFf2sbBca7Utj43CivTrbC"><span class="tag t-ok" data-page-node-id="mmK1QNO6YnK3L7BtO5xajs">两家一致</span></td></tr>
+</table>
+
+<div class="card" data-page-node-id="mgk2ACwH6gu6rHzUPHDv19">
+  <b data-page-node-id="oATJod4EAI0volfGJEFkaj">成交量口径实例</b>（9-02 日线交叉验证）：东财 284203 手 · 腾讯 284203 手 · 新浪 28420263 股。<br data-page-node-id="7n56ABVAoHc4dLVcr97dpN">
+  28420263 股 = 284202.63 手 → 东财/腾讯四舍五入为 284203。三家底层来自交易所同一 L1 数据，<b data-page-node-id="kQathewcWVRSEtJW9xM9TM">差异全部来自「单位 + 取整」展示层</b>。做漏量/量比检测时若直接混用三源数据，量能会差出几十手级别的假信号。
+</div>
+
+<h3 data-page-node-id="scX9rDm1vBxqY8fAY9FWbr">4.2 时间戳语义差异（最容易踩的坑）</h3>
+<table data-page-node-id="PyFxkD9EUf7UEoW5zcfeHu">
+  <tr data-page-node-id="vmSbMTGoTA3wJdIuxYoSeO"><th data-page-node-id="yniquzplHa946ujiHMwV0B">源</th><th data-page-node-id="iPBfc7wTKbBt8VF1jNJDlt">实测返回</th><th data-page-node-id="mUkMCmgKPJtGYqWyffFjZp">语义</th><th data-page-node-id="rq5jU35OvzAdwVAhikAuhk">对盯盘软件的影响</th></tr>
+  <tr data-page-node-id="8AMtDF8ZB8HXBXLbg8dZi1"><td data-page-node-id="iIu5lIL7FhuCmMPlyUv6kr">东财 f86</td><td data-page-node-id="PqEcHiCFbHwLDHstDUfS3p">2026-09-08 15:34:09</td><td data-page-node-id="AQZaXJ5KWiX4GrlHSqhW46">行情数据归属时间（收盘后定格）</td><td data-page-node-id="Ym0t4MdRt3VpDFdaSQB9gQ">适合做 K 线/快照时间主键</td></tr>
+  <tr data-page-node-id="RsPuEhlzJZz6B1pqanNuvb"><td data-page-node-id="gbfvmsF3CZBSZIQCCqucUp">腾讯第30位</td><td data-page-node-id="4ivqZwAFa5pH5R5msEnasu">20260908161409</td><td data-page-node-id="uHg3PRBuqniBFqnxT7dW1L">服务器最后更新时间，<b data-page-node-id="bfn08FgfLyu2TyVmgeMwRx">盘后清算时仍在跳动</b></td><td data-page-node-id="MYRJATDWEFlaYx1vnt8MDr">不能当行情时间用，盘后做"数据是否更新"判断会误判</td></tr>
+  <tr data-page-node-id="WCF5cRxzAtFr5nvWtDjWdN"><td data-page-node-id="j8BSaYKcapUgtIGtQ4HEnP">新浪第30/31位</td><td data-page-node-id="9c8bOxlyUctclakfyKYmTl">2026-09-08 / 15:35:15</td><td data-page-node-id="pMVu98JaVxqWiwTT7JHpqS">行情日期+时间</td><td data-page-node-id="TloUck8SxHidGsK27JpdFM">可用，但与东财相差 1 分钟级别</td></tr>
+</table>
+
+<h3 data-page-node-id="XRWWGHScp4hZlXROe4y4CG">4.3 K 线返回字段差异（同一天 2026-09-08）</h3>
+<table data-page-node-id="7vHqoxFl9FFxnmvNCcKEGx">
+  <tr data-page-node-id="UqRPWOWE8tFTbl5kzJR829"><th style="width:110px" data-page-node-id="D4nbFxCApqSdO1zF9Pk5zD">源</th><th data-page-node-id="0ThHpRmGengR8qOiIRMatm">日 K 单条字段（实测原样）</th><th data-page-node-id="MREYdLvm15SHAhxtYiecsX">缺口</th></tr>
+  <tr data-page-node-id="cA9D90xjlN8LJFqGQgH08j"><td data-page-node-id="TIlP2apcPqsId7P5kiwjK1"><span class="tag t-em" data-page-node-id="3aYEzT5IWFA0tcn76van8E">东财</span></td><td data-page-node-id="KnwkOVjVgH9QBnEsxcElFb"><code data-page-node-id="X3M5dAAnqYXP8s6TGGaCxl">2026-09-08,10.92,10.99,11.06,10.84,101817,111624181.75,2.02,0.73,0.08,4.75</code><br data-page-node-id="B9NIEySFlx2BhLk2AnLNmb">= 日期,开,收,高,低,<b data-page-node-id="2htMHYt3ZdGBN199gHaa2K">量(手),额(元),振幅%,涨跌幅%,涨跌额,换手率%</b> —— 11 字段</td><td data-page-node-id="88iICAVFkpm5kBN1LVa0d9">无（最全）</td></tr>
+  <tr data-page-node-id="AVeZc98dysFliHUyTG66u6"><td data-page-node-id="pr0xOedB2aHXhkUQRN1Y1F"><span class="tag t-tx" data-page-node-id="qOnT7ebRx30cle3vBguKAI">腾讯</span></td><td data-page-node-id="r0b80FYSkV4cC2FQBfs5dC"><code data-page-node-id="NlpobtPkiaI1oxQgIT5GnR">["2026-09-08","10.92","10.99","11.06","10.84","101817.000"]</code><br data-page-node-id="KodW305uSJPr7yuZ746p2N">= 日期,开,收,高,低,量(手) —— 6 字段</td><td data-page-node-id="4aFUov4QFPLJDukCXfzXPu"><b data-page-node-id="YHkW4itlrFztit45LJgA9p">无成交额、无振幅/涨跌幅/换手</b>，全要自算；额可从快照第35/57位补</td></tr>
+  <tr data-page-node-id="VAn7BEj8d30TXjmkbXhpfX"><td data-page-node-id="np29wwkYtfao8TPbVyf23R"><span class="tag t-sina" data-page-node-id="tN0Cyd8ldndgJAlNxYPZ14">新浪</span></td><td data-page-node-id="Gugy3AjHXAvKteL8LR3Ncf"><code data-page-node-id="JHOCOu9XH0RojLUpYx7WZf">{"day":"2026-09-08","open":"10.980","high":"10.990","low":"10.970","close":"10.990","volume":"135100"}</code><br data-page-node-id="YivFxKxKwTLGK2RlKqjxHa">= day,open,high,low,close,<b data-page-node-id="HcpUzKSuuGC5W2KSgtqyvb">volume(股)</b> —— 无额</td><td data-page-node-id="Tr7HRG2deJD1EC4RNLrC6O">无成交额、不复权、量为股（与其他两家差 100 倍单位）</td></tr>
+</table>
+
+<h3 data-page-node-id="n4Fsb3fStGDQnIyrd6KbKm">4.4 分时差异（同日 002918）</h3>
+<table data-page-node-id="nBX1Fv2jieA2tf1CkTlpFI">
+  <tr data-page-node-id="71dSOLfrAXX7jB0YMgpE1l"><th style="width:110px" data-page-node-id="bKIBfa2fkTszsA5TC6FBpX">源</th><th data-page-node-id="fi17GIb5ILYX9mNILQAE0x">格式（实测首条）</th><th data-page-node-id="xLGiYgrG0lGk901SuERQp1">条数</th><th data-page-node-id="K6T0gel5PzZHpPaOkLqS0A">均价线</th><th data-page-node-id="KvECW0SpeepPXz1Mzrb3yE">盘后定价</th></tr>
+  <tr data-page-node-id="LjPAKucHii7OdGQlsPKXWx"><td data-page-node-id="N2yj7FugMoWRqr4PAlw5Mk"><span class="tag t-em" data-page-node-id="u2fj5Y2cWqpLijqyd48Aqm">东财</span> trends2</td><td data-page-node-id="dMuegB8ZReRlAyZBU0JIYB"><code data-page-node-id="nBNV5yR1KCDIY2OUjAxgoR">2026-09-08 09:30,10.92,10.92,10.92,10.92,329,359268.00,10.920</code><br data-page-node-id="TBwGMcStD4HSzZ2RdKf9SI">时间,开,收,高,低,累计量(手),累计额(元),<b data-page-node-id="6NtnVkgOtSJmEWvKsEEkAu">均价</b></td><td data-page-node-id="FZBZaHA7YHEocGTz0bIfSn">271</td><td class="c" data-page-node-id="G4HNahlvSWEM2FMLDFaHIE"><span class="tag t-ok" data-page-node-id="ePRClsTCv2HMSjcxVjI1qf">✔ 直出</span></td><td class="c" data-page-node-id="EBvj5sGHT9m7gSW4akv8OB"><span class="tag t-ok" data-page-node-id="J09Jdr5UNpw4Rt6nNmKBW7">✔ 含 15:01-15:30</span></td></tr>
+  <tr data-page-node-id="oxN5JW7o7HwBpIMXVo4YhT"><td data-page-node-id="GYDIVvwi0nbUMOs5cHHFd0"><span class="tag t-tx" data-page-node-id="jUCKe9fK42KGcQZetaHLrG">腾讯</span> day/query</td><td data-page-node-id="z4HLBZ2rwORtt80yu27yRr"><code data-page-node-id="tkRktwNAfTf5WVO4H4C61n">"0930 10.92 329 359268.00"</code><br data-page-node-id="e74CaN38oLPvA7qrVWhQBc">时间,价,累计量(手),累计额(元)</td><td data-page-node-id="sjLXUFGnIFtJPh9qfahmi2">267</td><td class="c" data-page-node-id="snnCfzQeoSH6DTdKR1sH2N"><span class="tag t-bad" data-page-node-id="IF4MZPsYPc6PDMVb3U91wf">✘ 自算</span></td><td class="c" data-page-node-id="Oz4vJiQVex67iAWpIeHyuC"><span class="tag t-warn" data-page-node-id="noOZ66VzTOiqvs76yHBmpM">仅盘后实际分钟(26条)</span></td></tr>
+  <tr data-page-node-id="43wE1YhQhl9wKw3CygLB38"><td data-page-node-id="5C8vwEbRwkMGBN69VH97pr"><span class="tag t-sina" data-page-node-id="FsEOJSeQafAEwph08VxcQF">新浪</span> 1分钟K</td><td data-page-node-id="HWNIDfypB0kCOQCKzKHPof"><code data-page-node-id="s7gfw6d7dDo4FZHhGsAlDn">{"day":"2026-09-08 14:57:00",...,"amount":"1483997.9841"}</code></td><td data-page-node-id="WTcEr06n8F10zqPvObtiMT">按 K 根</td><td class="c" data-page-node-id="WsPv32JtJ3uAETwvVUyCRr"><span class="tag t-bad" data-page-node-id="RrZnKhyCTXFNG65ImvkFyB">✘ 自算</span></td><td class="c" data-page-node-id="DZkvaCTihbaqgRJedhhRsJ"><span class="tag t-bad" data-page-node-id="JDWXTWsdfqF9c54uC3wK4C">✘</span></td></tr>
+</table>
+<p class="note" data-page-node-id="8nOPcPlfZ5M0CNT6JzZrDP">亮点：腾讯分时首条累计额 359268.00 与东财<b data-page-node-id="hZChficjTEfjI1YEcSFBz0">完全一致</b>（同源验证）。新浪 1 分钟 K 的 amount 精确到 4 位小数（元），是三家中金额精度最高的，适合做成本分布/滑点计算。</p>
+
+<h3 data-page-node-id="5OIbuREX9qHh29BOPapHzp">4.5 腾讯快照 88 字段完整字典（5 品种交叉验证版）</h3>
+<p class="note" data-page-node-id="KHNrFoYxuuczFBLAWS32e6">验证样本：蒙娜丽莎 002918 / 贵州茅台 600519 / 农业银行 601288 / 沪深300ETF 510300 / 上证指数 000001（2026-09-08 收盘快照）。区间涨幅字段用 320 根日K反推匹配锁定；未锁定字段如实标注「待验证」。<b data-page-node-id="gumFZpaAb2eNe3jAL1F1c0">网传"第45/46位是涨跌停"是错的</b>——45/46 实为总市值/PB，涨跌停在 47/48（茅台 1447.61/1184.41 = 昨收×1.1/0.9 精确验证）。</p>
+<table data-page-node-id="vEuVK1geZN7q9Qzrxj8DVK">
+  <tr data-page-node-id="k0MiFAnt42XZVdV3Mmw2Sy"><th style="width:44px" data-page-node-id="NyW7RhbSpR85C2J6hFGUH8">位</th><th style="width:150px" data-page-node-id="HHnLVaYgCX8k1BAngIZEXK">字段</th><th data-page-node-id="F0FUYXXzjQvui0RMpxTkvu">002918 实测</th><th data-page-node-id="GwIsistKlYFmGwyWuOHQlf">说明</th></tr>
+  <tr data-page-node-id="O1kOVWPWBx9bBldRNasJ0v"><td data-page-node-id="SJpFbkbkOYYwstdGmESatF">0</td><td data-page-node-id="PGAALeu7B7iFTCZVD5dkdz">市场代码</td><td data-page-node-id="A6xrtIGo9gJafV75Ciddy1">51</td><td data-page-node-id="DNwN7i69shpM5CEZlwnCiH">实测：沪=1、深=51、北交所=62（bj920002）</td></tr>
+  <tr data-page-node-id="jzEHnAOT4S4BhEcGzSmAQ9"><td data-page-node-id="0KmSUsW5Saz3HJVKgM1SHC">1/2</td><td data-page-node-id="gks0EbcBUgo21Rp5cLC6CW">名称 / 代码</td><td data-page-node-id="RcQ2eDbFMKgDGAOsxDyH30">蒙娜丽莎 / 002918</td><td data-page-node-id="gDvoTVmqSrvLMGa8OofTAx"></td></tr>
+  <tr data-page-node-id="WmG7VBN1omoBVKE3NjQ4YZ"><td data-page-node-id="dFCLux9ytLHQkvoxjdazPC">3/4/5</td><td data-page-node-id="UAk5RZ42j5CeYSSlj1kGWw">最新价 / 昨收 / 今开</td><td data-page-node-id="pO6mwiqB8KYDOLsoL53ptG">10.99 / 10.91 / 10.92</td><td data-page-node-id="3xc6PsEB1CjDgOFSIlUgeL"></td></tr>
+  <tr data-page-node-id="NqgEoLFjMRZSydPO9ZzPeg"><td data-page-node-id="eVq7OMTovPfJmOtgFSc6EA">6</td><td data-page-node-id="eghqsbRIAApnQfymEHtKdS">成交量(手)</td><td data-page-node-id="nn8WiBY7GBxJ6NF7wht7uG">101817</td><td data-page-node-id="xCtdG6t9FVYLoWR3F6fzZ2"></td></tr>
+  <tr data-page-node-id="hGsHp3Adv37na2nBrHkxA3"><td data-page-node-id="lGLUdHiMscsQgsSzOZhgTB">7/8</td><td data-page-node-id="1FowOB40bMgYSbpOIVVEdM">外盘 / 内盘(手)</td><td data-page-node-id="QpD8IE6ChBWFvlHXJOUaBa">51113 / 50704</td><td data-page-node-id="UDGE0sPQbCdw3xocxm0OAH">两者之和=成交量，精确验证</td></tr>
+  <tr data-page-node-id="BCih48I94lQ2K7QckNE48J"><td data-page-node-id="4wFGPPWyUr3UFOYSyt8Wul">9-18</td><td data-page-node-id="isOF9Uv0nMWNpKFXGYeZsa">买一~买五 价/量</td><td data-page-node-id="GZ5G9Ygitb6QAvCWfdbYlV">10.99/501 … 10.95/120</td><td data-page-node-id="SikiDOm5FdjWRZVab6XmKm">量单位=手</td></tr>
+  <tr data-page-node-id="roF3Hus11fCtoT4LoUvJRZ"><td data-page-node-id="xZh4cUVCwWMHT7ZquTio8B">19-28</td><td data-page-node-id="HSAy9AfGTHlk6yzlE5pnaV">卖一~卖五 价/量</td><td data-page-node-id="UYDsagEu3wFCFvFaNWOrMA">11.00/427 … 11.04/91</td><td data-page-node-id="bizDPcE6dYYXnNzPF4obSJ">量单位=手</td></tr>
+  <tr data-page-node-id="wWy6jXAaKlwUXb0Deez66u"><td data-page-node-id="s4ECmOOz9LsHyKrZi7Nn7s">29</td><td data-page-node-id="hPA9E9D2UXG7PZ5B0vssLh">最近逐笔</td><td data-page-node-id="5mOahBzcrcnTGrR9RIdaWz">空</td><td data-page-node-id="i3ZW6CwpIYLz9qTuFBe8IM">旧接口遗留，恒空</td></tr>
+  <tr data-page-node-id="9Ee2Fo8ef0VGZRzwKIH4XP"><td data-page-node-id="E6kHgHgOnFraAXJEF5b3Sx">30</td><td data-page-node-id="ZpdgI4DcFJDE5tiAnIvgUG">时间</td><td data-page-node-id="mWuzQGf2SDjXioS9mkDq9a">20260908161409</td><td data-page-node-id="3lHdbVFMSFPGw2hiqSzZtX"><b data-page-node-id="Kb8LyPU4HA6Bu6nH5k6LSe">服务器更新时间</b>，盘后清算仍在跳，≠行情时间</td></tr>
+  <tr data-page-node-id="lYx13eO87ORiJmHXLffmC7"><td data-page-node-id="0WOapTmb8t1OOmxlBfH454">31/32</td><td data-page-node-id="zREnxns96WF6AJmjHu8ZDh">涨跌 / 涨跌幅%</td><td data-page-node-id="TKtB1pCbeas5sOHblBCFmZ">0.08 / 0.73</td><td data-page-node-id="NiPQEoly7Gu87VTzdOcuaH"></td></tr>
+  <tr data-page-node-id="FyGxkLZaKzgRUHQwuY96gQ"><td data-page-node-id="pXrZRSPBcmafajomqnJ5i7">33/34</td><td data-page-node-id="8VyTlzvFjApS0PAx8fOnB1">最高 / 最低</td><td data-page-node-id="ofMgA8Razz3SeTnfDWa7QN">11.06 / 10.84</td><td data-page-node-id="ojF27TOHEZS43EFW3G1GZD"></td></tr>
+  <tr data-page-node-id="CR01rUdmXYJWGjrrjiIyWq"><td data-page-node-id="DHq3fP5mDH2oLaD6Y7Txu2">35</td><td data-page-node-id="6a8jPCA6V0F02ux4AAWDqK">价/量/额 组合串</td><td data-page-node-id="Z8cTTjyQ4MjnFil56HzEU0">10.99/101817/111624182</td><td data-page-node-id="alZ0AUNyb8B8GpPQCfXS7H">额单位=元，取整到元</td></tr>
+  <tr data-page-node-id="FmwW10F0JjXgldMzhBV0KN"><td data-page-node-id="I1EiC8eCFuuus6IeOt5L5U">36</td><td data-page-node-id="CLTbcgudleaWqGgUIRaP7p">成交量(手)</td><td data-page-node-id="DreAswW76yHqVsOEYbIlE4">101817</td><td data-page-node-id="6KIXx0RcIqboHztw3JbCyT">与第6位重复</td></tr>
+  <tr data-page-node-id="f73uJ5SQ37KbgSWh8rocCy"><td data-page-node-id="iYZzrEyUAMggWnxi9udXLG">37</td><td data-page-node-id="Cex7CjyuME7NT90bB6sGm6">成交额(万,整数)</td><td data-page-node-id="1XTRaW6Aquw9ebcDB20NvM">11162</td><td data-page-node-id="T1g72lWkd6NSundWySRyYv"><b data-page-node-id="F7wvpMQtJTSlmHUERIer4J">粗精度</b>，要精确用第35或57位</td></tr>
+  <tr data-page-node-id="JJHDAAObJIpHO3WScM9DUV"><td data-page-node-id="axLkzM35T8VUTCVEPmBiDW">38</td><td data-page-node-id="QzcF6nmNuoposxkAZgAvl1">换手率%</td><td data-page-node-id="R0HoKTckyf3hmojlF2yEA1">4.75</td><td data-page-node-id="QbtqbODH9mDBUdFMXcmvjd">=量(股)/流通股本 精确验证</td></tr>
+  <tr data-page-node-id="srAVCOjd7JzPB9XfPOkCFV"><td data-page-node-id="GXDbZwkQfdC9pzXhD0FiS7">39</td><td data-page-node-id="REW75dYnnFfjwPpQviRjq8">PE(TTM)</td><td data-page-node-id="AJScvzaN3IT6QejX5qXqhb">41.83</td><td data-page-node-id="63tH7G6OVrqGadfXBNbGT3">ETF/部分指数为空</td></tr>
+  <tr data-page-node-id="m8Qvg6nG3lsBDnbb3PofT1"><td data-page-node-id="zGFqB0YImTSuw05Zk3UEI6">40</td><td data-page-node-id="e4yAhVx77FDS8lmgmIxy7j">—</td><td data-page-node-id="L09HJFdNfSSJCtIvPTJ3cn">空</td><td data-page-node-id="1RLDOgwANlAdeFg6q43wIV">保留</td></tr>
+  <tr data-page-node-id="ozFiUTzvwKb4827bnxy9CH"><td data-page-node-id="uSSJKnJ97983hLhPMGjWOv">41/42</td><td data-page-node-id="ATenZQi6GD9DbbTwzzZI4x">最高 / 最低</td><td data-page-node-id="MRwgeLwO06Yu2KcV45r3xQ">11.06 / 10.84</td><td data-page-node-id="YKUsLZPRexWeCMgqNcbeEO">与33/34重复</td></tr>
+  <tr data-page-node-id="yFyDGXItewhXk47wrMxCQx"><td data-page-node-id="ki3MF3AYfIileOBhMszNfF">43</td><td data-page-node-id="oSUxvY7IrFZOAuDGl3AKAb">振幅%</td><td data-page-node-id="blRxhyYAeWiZthnXzmwDQG">2.02</td><td data-page-node-id="VaVSAC6mIe1OKYrWJ1E6A2">=(高-低)/昨收 精确验证</td></tr>
+  <tr data-page-node-id="OnYHnFmhzYYaOhp4u0WdPG"><td data-page-node-id="C1Clj6zPwC6SGaK1VD037W">44/45</td><td data-page-node-id="knowuCfXwKdQvuz5HzbY3t">流通市值 / 总市值(亿)</td><td data-page-node-id="8VHEKpwFcBWclwoA7KqhPd">23.54 / 44.93</td><td data-page-node-id="IeBpxh0IcyvdBl5JRG0BgV">=股本×价 精确验证</td></tr>
+  <tr data-page-node-id="BGhV4GGNLusOqoSiDc5RdP"><td data-page-node-id="nquZlsbbPJmGBHxqfLpW8E">46</td><td data-page-node-id="4woVX28fJpDX9LKfb7cqQq">PB</td><td data-page-node-id="9xAm7wTwV9CkTVC1cu4ROH">1.38</td><td data-page-node-id="mlO3wv8MEYD43QhhTg0xk3">ETF/指数=0</td></tr>
+  <tr data-page-node-id="kH9Uzijq4d8nS6yODWmMq8"><td data-page-node-id="WI5wEu2xsdN481UzPblM01">47/48</td><td data-page-node-id="S5UrYFumgZD7sBiN4gDUtE"><b data-page-node-id="oG6mwr0X5xLHfEXpvwmGhu">涨停价 / 跌停价</b></td><td data-page-node-id="PVCNAEhlr8XDFL5IOljE4S">12.00 / 9.82</td><td data-page-node-id="OknokL37qXemXc9PiYbeWz">=昨收×1.1/0.9 精确验证；ETF也有(±10%)；指数=-1</td></tr>
+  <tr data-page-node-id="HvWayBikDRzWwAgEzSur2b"><td data-page-node-id="N4IYX9chkFOQ2E7mBaf8xG">49</td><td data-page-node-id="zVxBN1v2WkiZ1EfgpEHQNm">量比</td><td data-page-node-id="AAgiohdIHdHw6pmSZmoPwQ">0.42</td><td data-page-node-id="5YJ86mC5ct47g7IgCKwhBl">指数也有</td></tr>
+  <tr data-page-node-id="oF4Tvrn8FGHrTAAfgoXk8Q"><td data-page-node-id="Nq4zSmtDQpfD1pVS8GCt0t">50</td><td data-page-node-id="NXVMyz0R1twS5wDfcUFeC0">委差</td><td data-page-node-id="j4wQDM2Iylck5hwchAREli">245</td><td data-page-node-id="hr7lTDyBBfJDvYxtTVBu7f">=(买五档量和)-(卖五档量和)=1580-1335 手工验证精确命中</td></tr>
+  <tr data-page-node-id="Hems3OdSnR8xZ13jSIBa4r"><td data-page-node-id="kDAUSuHf6Md2nWGOHKW90f">51</td><td data-page-node-id="xaadCNPy0sOhgVdJXcyVrc">均价</td><td data-page-node-id="HiNyhJLg2zk2vlr34WqBqa">10.96</td><td data-page-node-id="Afwzs93bA6A2PF80oZfmL9">=额/量/100 精确验证</td></tr>
+  <tr data-page-node-id="JHnvlbWHe79GNXvKbwWlyG"><td data-page-node-id="y4hTGmkkXeNyWcyx0X6HYP">52/53</td><td data-page-node-id="qQ9FqTInP7q6xEYboLaJFF">市盈(动) / 市盈(静)</td><td data-page-node-id="vvCEVOqZGGkG2Su9a1mngp">45.55 / 85.70</td><td data-page-node-id="IP7MndifspbVWiHHtaTG7U">仅个股</td></tr>
+  <tr data-page-node-id="c2HUpZljJxuqWXxF35ph0r"><td data-page-node-id="A50b8m7zu1tEo7FncxXqsP">54/55</td><td data-page-node-id="lmTI6pBAG988h54zkCfN0h">—</td><td data-page-node-id="vTFW5XcUvZYmpaRoKmg5d0">空</td><td data-page-node-id="5pn6bM09ylAiVKH3RnDvJV">保留</td></tr>
+  <tr data-page-node-id="LHmBQ4bWj15ChvCK2fr0Rq"><td data-page-node-id="4oIpveSsBFH8KTztAOduDs">56</td><td data-page-node-id="cE85AhXWDYszlYgOgm4i9J">待验证</td><td data-page-node-id="tX6LjdBFRfrRVhPOcdsI9p">1.37</td><td data-page-node-id="aVHe2SxyajBnDNUjTWZHEk">数值小，疑似涨速/3日类，未锁定</td></tr>
+  <tr data-page-node-id="Yl8wax14ucdwldkJlgdkI9"><td data-page-node-id="1crziej5sV2b1SOP6QMNMJ">57</td><td data-page-node-id="MA6GYjKSxmhSx7VoSnZ6wj">成交额(万,4位小数)</td><td data-page-node-id="a9ZWlfMWGMcMWvKShLQlQK">11162.4182</td><td data-page-node-id="yH5BIeCK5r6ua6AeSmCA4G"><b data-page-node-id="4m2RTezoEvx5ojwDAePpjr">最精确的额字段</b>（万元×4位=元到百位）</td></tr>
+  <tr data-page-node-id="b5b8Sg8fJRNRnGq66i5A6J"><td data-page-node-id="hMonrwKooWLwwaXxKS73Sg">58</td><td data-page-node-id="l3BOBAXfbfAkGVzcK0F05G">疑似成交笔数(万)</td><td data-page-node-id="w7zTcAAI7C3vQ8ct7AsmzO">5.9346</td><td data-page-node-id="FXt8ofkoOD3kB2AoKMIs6B">002918/601288/510300 三样本吻合（量/笔数=1.7/7.6/11.2手均合理），茅台异常，待验证</td></tr>
+  <tr data-page-node-id="ouEdhlFDmqej3cuY5Pom1Q"><td data-page-node-id="AoxzlP9XLG4dLJdm5HiiJQ">59</td><td data-page-node-id="NDCxI7B9iSYHKGTWsObUAn">待验证</td><td data-page-node-id="XiAEC0UeL0HbDyFszDpNZN">54</td><td data-page-node-id="nFzFERts0Qqj2ZI3dAIrve">整数，未锁定</td></tr>
+  <tr data-page-node-id="sUO1vWUKGtGcDVUmJzunrA"><td data-page-node-id="A6FWEfbw2gcEcHF8TnQPC6">60/61</td><td data-page-node-id="7Taef3cysrDNlVCRilEVcq">市场类型 / 品种类型</td><td data-page-node-id="9o9SLpdDbYVYa5TcE55Bgu">A / GP-A</td><td data-page-node-id="U3ToWDYXaMYTsL5PgSEFGW">实测：GP-A=A股、ETF=基金、ZS=指数</td></tr>
+  <tr data-page-node-id="WU3qn8CwxwZr4PPN9tHG0j"><td data-page-node-id="xGZpxHMh9AWreFQlHHuIt7">62</td><td data-page-node-id="xlLUGSwga8b7uL9RHJQlwa">年初至今涨幅%</td><td data-page-node-id="iI9mzAgYRi4m9NafOZd3Sf">-22.33</td><td data-page-node-id="dKCkaP5ynka3g2FC33Vfr0"><b data-page-node-id="rxQFLd5MvOg5EnoXssI32g">分红复权口径</b>：茅台-2.95 与不复权-4.93 恰差1.97=分红25.87元/1316元，精确验证</td></tr>
+  <tr data-page-node-id="pZcroDBWKsnVTRedCWe96z"><td data-page-node-id="aw7FyWiPne9027hBzfstXf">63</td><td data-page-node-id="palJMRyu1709qXDbB3KvyM">近5日涨幅%</td><td data-page-node-id="wnNWAY5Bxnnoi2aQ4d8skj">-6.15</td><td data-page-node-id="mAo3WVSM15usllY5sWbQVA">双样本与日K计算完全一致</td></tr>
+  <tr data-page-node-id="nGOrb8grmQHrPlHcqxgjhB"><td data-page-node-id="AybU0OlSQq4M5M4WLfBi1R">64</td><td data-page-node-id="Vad7GczY0tGebdcsT1bxFl">本季度至今涨幅%</td><td data-page-node-id="TwlvtBXvM9GUegwhAGuXXD">0.73</td><td data-page-node-id="Xikh4A56yZxaoEIOWTOoDD">三样本指向自上季度末(6-30)起算，待复验</td></tr>
+  <tr data-page-node-id="X1DMmExn4KoQWFr25eUz7U"><td data-page-node-id="Q6XAvjXWrO5KVBhFeL1jXk">65/66</td><td data-page-node-id="DaJyWszAEyd7gaKrqVMbLp">待验证</td><td data-page-node-id="jAxaZGFaaamlQ6IoDGUhJK">3.24 / 1.71</td><td data-page-node-id="nZ13LntVIXfHbdEfummnkx">茅台32.41/27.30 量级异常，未锁定</td></tr>
+  <tr data-page-node-id="UygR21JjvIUKuSGB6Wtimq"><td data-page-node-id="hmSIkayNIow9UyaqxJc6kg">67/68</td><td data-page-node-id="rR1IRUXfvZo84kVkbRymRQ">52周最高 / 最低价</td><td data-page-node-id="U4tX9RFeNxjMMhjmO5dp6j">18.79 / 8.04</td><td data-page-node-id="giu0OONmgo5Zv08q4AxlgX">腾讯自有口径（含除权调整），与不复权日K算出的52周高低有出入，建议自算</td></tr>
+  <tr data-page-node-id="DGtfQqWfzIl61ZSEHrlD4c"><td data-page-node-id="jKzFtbso7WT0qlRdIEF78J">69</td><td data-page-node-id="g7PrcnaGFmWxAI0IsuMuAW">近10日涨幅%</td><td data-page-node-id="GulZXFm0RRrFaR3rURHn5a">8.49</td><td data-page-node-id="CCUof6k20kKT9YrdKErwrN">双样本与日K计算完全一致</td></tr>
+  <tr data-page-node-id="ii9AKdweDSPXAOLEsfbOIV"><td data-page-node-id="zadzDgxCt7gmEOZYhkUEPP">70</td><td data-page-node-id="HibkkE4Ga7YU75GWIXMrRm">近20日涨幅%</td><td data-page-node-id="SDk4B4jAn0MJVcWuBADtay">11.23</td><td data-page-node-id="IZzViX7nIouiqAYYFPo9Ac">双样本与日K计算完全一致</td></tr>
+  <tr data-page-node-id="LRI2wllxC5QdR998gCvmL0"><td data-page-node-id="emhWQV6tBVD7MfXYkMGu5E">71</td><td data-page-node-id="0iQChFSj8bDhUnUj2O2kjn">近3个月(60自然日)涨幅%</td><td data-page-node-id="cpQWUbpdzFRYDwRT1hG8SR">-4.18</td><td data-page-node-id="8s0FFDlJuUPo90yk3PvrZX">三样本指向60自然日窗口，待复验</td></tr>
+  <tr data-page-node-id="O9ANAQgBvVI5kC5qKbtOIB"><td data-page-node-id="yaYT2jluBNnJZtiDVn7kT6">72/73</td><td data-page-node-id="eH1kJZqZJqokhq8mSSAPoS">流通股本 / 总股本</td><td data-page-node-id="y1IVEGPpbqf1j4x0NfzQzF">214204964 / 408819913</td><td data-page-node-id="6AQXewRF2yjY903GOGKHda">精确验证（市值/价=股本）；ETF=份额；农行73含H股</td></tr>
+  <tr data-page-node-id="qeeHmnTkVejjaVYmCFeKG6"><td data-page-node-id="qtR9XWqyDFuHq28NacIK1h">74/75</td><td data-page-node-id="qmvHhweonuTmhuhELCbvCT">待验证</td><td data-page-node-id="vyZhyZzbYqJmunlFALG0pk">8.40 / -20.25</td><td data-page-node-id="lXlJRw5HO3bjP2XrcqECaf">未锁定</td></tr>
+  <tr data-page-node-id="zHz6EUfcjZEVa9xF3tcnXu"><td data-page-node-id="lAabW3ZPfETgDkJZLBaX4D">76</td><td data-page-node-id="1BFVsQzH2k29dFTKdVfNGm">流通股本</td><td data-page-node-id="iXyVqUhmNTRy86JvWPc33T">214204964</td><td data-page-node-id="1F7vAL1WHpsH8u7hHUgGww">与72重复</td></tr>
+  <tr data-page-node-id="9cho5Hc6biPoxTvEamDYOG"><td data-page-node-id="7IxCV9wwc4To8m4pClP9N3">77/78/81</td><td data-page-node-id="9AVBkbcvYioOSXt2qFoB6k">折溢价率% / IOPV / 最新净值</td><td data-page-node-id="0x8Yy3P2yeNXy1uhHgolp9">— / — / —</td><td data-page-node-id="J2fOfoqF8px5Mym8yrb9EE"><b data-page-node-id="Ekn19xvwclagSbbrpJKioG">仅ETF</b>：510300 实测 -0.09 / 4.6281 / 4.6257，IOPV 精确验证</td></tr>
+  <tr data-page-node-id="kJHKtT3pbpVrBHtYsxEL9U"><td data-page-node-id="QaOyBgWbT0JahYfIdfmrLj">79/80</td><td data-page-node-id="0qdUQ8DAThDyrfoMVDJZLT">待验证</td><td data-page-node-id="FY7LT5tE5iTJlDKbyjhp13">-18.95 / 0.09</td><td data-page-node-id="fc9OfVY948QWrO21UuFnKk">未锁定</td></tr>
+  <tr data-page-node-id="DUnub7rhSoWTVf8XzFiL9T"><td data-page-node-id="uyloLoKCBgfjDnXu5HwXSr">82</td><td data-page-node-id="iDBgg2QZyVfdIhkBgULyjZ">货币</td><td data-page-node-id="DsAOov9Sx8SJ4HVYBybq93">CNY</td><td data-page-node-id="myClHkALVIGONIqB1MmlnR"></td></tr>
+  <tr data-page-node-id="xiswrsYeoB4oyVWTfI7CBA"><td data-page-node-id="P4AmK2ykRjrFp8mnyGv7fr">83</td><td data-page-node-id="3VyHu1xwLIgElqA6FxBsvA">—</td><td data-page-node-id="87vVRq3XWJWbCgLtaojP9X">0</td><td data-page-node-id="vVfNOArypdyAGGR4KdiZUD">全样本=0，保留位</td></tr>
+  <tr data-page-node-id="OH3i39Kh1CLuPKu74CmqQp"><td data-page-node-id="bcvm52ZFGlcSI831nDqaNt">84</td><td data-page-node-id="uREyGMOYjVUVOpRFpRjFAE">标志位串</td><td data-page-node-id="9HYwhVr9vFb5UmCncrWBdh">—</td><td data-page-node-id="R93fzRq7laH2AMbTadCa6I">沪市两融标的/ETF 出现 <code data-page-node-id="2o9wPA5rvI2rNfCL79TTgv">___D__F__N</code>，含义未定</td></tr>
+  <tr data-page-node-id="gLYkCDEY1qlUMiBd9jhNEl"><td data-page-node-id="8rC5vECqj3pfoIqYJHuBK3">85/86</td><td data-page-node-id="G6UcIzYUf7uqIEAnq3QaVa">待验证</td><td data-page-node-id="DI2tQ4bqnc2w2CFf1faPtP">11.08 / -508</td><td data-page-node-id="tsvQ9wipQGzXLKd3kq2JRp">价格/整数量级，未锁定</td></tr>
+  <tr data-page-node-id="EBSVFOwDFgvAMxex5Y0yUL"><td data-page-node-id="aT3DFl9hAB48FirdWc4Uo0">87</td><td data-page-node-id="PVbzyWgE6hyvaIy6uYt1HD">—</td><td data-page-node-id="GPL3R5BnVnfgVg2d3cgITY">空</td><td data-page-node-id="T9OVlwSsKK17UgBuglkvIF">保留</td></tr>
+</table>
+
+<!-- ============ 接口地址速查 ============ -->
+
+<h2>④.6 字段数量与取数方式对比：东财 vs 腾讯</h2>
+<table>
+  <tr><th style="width:170px">维度</th><th>东财 push2</th><th>腾讯 qt.gtimg.cn</th></tr>
+  <tr><td>单请求字段总量</td><td><b>默认 46 个键</b>；用 fields 显式扫描 f1~f300 共识别 <b>166 个键</b>，其中有效非空约 <b>136 个</b>（其余为 "-" 占位）</td><td>固定 <b>88 个位置</b>，002918 有效 <b>80 个</b>（29/40/54/55/77/78/84/87 为空）</td></tr>
+  <tr><td>字段编号体系</td><td><b>稀疏 f 编号</b>（f1~f300 区间有效，f301+ 基本空），无值字段直接省略（极少数返回 "-"）</td><td><b>密集数组下标</b>（0-87），无值字段用空串占位，下标永远稳定</td></tr>
+  <tr><td>取数方式</td><td>必须拼 <code>fields=f43,f57,...</code>；<b>不传则只返回 46 个默认字段</b></td><td>无需参数，一次全量返回 88 位</td></tr>
+  <tr><td>盘中会多出的字段</td><td>f11-f20（买一~买五）+ f31-f40（卖一~卖五）共 20 个盘口位</td><td>无变化（9-28 位常驻）</td></tr>
+  <tr><td>解析稳定性</td><td>按 key 取值，字段增减不影响解析</td><td><b>按下标取值</b>，腾讯若调整位数会全表错位</td></tr>
+</table>
+
+<h3>东财字段分区（f1-f300 实测扫描结果）</h3>
+<table>
+  <tr><th style="width:120px">区间</th><th>识别键数</th><th>关键字段（002918 实测值）</th></tr>
+  <tr><td>f1-f100</td><td>27</td><td>f43 最新价·f44 高·f45 低·f46 开·f47 量(手)·f48 额(元)·f49 外盘·<b>f50 量比 0.42</b>·f51/f52 涨跌停·f60 昨收·f71 均价 10.96·f80 交易时段JSON·f84/f85 总/流通股本·f86 时间戳·f92 每股净资产 7.97</td></tr>
+  <tr><td>f101-f200</td><td>87</td><td>f116/f117 总/流通市值(元)·f119 5日涨幅 -6.15·f120 20日 11.23·f121 3月 -4.18·f122 YTD -22.33·<b>f127 行业"家居用品"·f128 地域"广东板块"·f129 概念"智能家居,体育产业,首发经济"</b>·<b>f137 主力净流入 74.09万·f143 大单 -160万·f146 中单 -313万·f149 小单 239万</b>·f161 内盘 50704·f162 市盈动 45.55·f163 市盈静 85.7·f164 PE(TTM) 41.83·f167 PB 1.38·f168 换手 4.75·f169/f170 涨跌额/幅·f171 振幅·f174/f175 52周高低 18.79/8.04·<b>f178 主力资金近5日 JSON</b>·f189 上市日期 20171219·f192 委差 245·f198 板块代码 BK0440</td></tr>
+  <tr><td>f201-f300</td><td>48</td><td>f262/f264 关联可转债(127044 蒙娜转债)·<b>f291 10日涨幅 8.49</b>·f297 财报期 20260630（多数位为 "-"）</td></tr>
+  <tr><td>f301-f400</td><td>4</td><td>仅 f301/f302(总市值重复)/f303/f400，<b>A股有效字段基本止于 f300</b></td></tr>
+</table>
+
+<h3>东财独有 vs 腾讯独有</h3>
+<table>
+  <tr><th style="width:110px"></th><th>字段</th><th>腾讯对应</th></tr>
+  <tr><td><span class="tag t-em">东财独有</span></td><td><b>概念/行业/地域标签</b> f127/f128/f129/f198<br><b>实时资金流四档</b> f137 主力·f143 大单·f146 中单·f149 小单<br><b>资金流近5日</b> f178（JSON）<br><b>交易时段结构化</b> f80（JSON，含集合竞价/盘后区间）<br><b>每股净资产</b> f92 · <b>上市日期</b> f189 · <b>关联可转债</b> f262/f264</td><td class="c"><span class="tag t-bad">全部无</span></td></tr>
+  <tr><td><span class="tag t-tx">腾讯独有</span></td><td><b>ETF IOPV / 折溢价率 / 净值</b> 第78/77/81位<br><b>品种类型标识</b> 第61位 GP-A/ETF/ZS · 市场代码 第0位</td><td class="c"><span class="tag t-bad">东财需换接口</span></td></tr>
+  <tr><td><span class="tag t-ok">两边都有且数值一致</span></td><td colspan="2">5/10/20日·3月·YTD 涨幅（f119/f291/f120/f121/f122 ↔ 63/69/70/71/62 全部逐位吻合）·52周高低（f174/f175 ↔ 67/68）·委差（f192 ↔ 50）·PE/PB/换手/振幅/涨跌停 · 内外盘（f49/f161 ↔ 7/8）·均价（f71 ↔ 51）</td></tr>
+</table>
+
+<div class="card">
+  <b>⚠ 东财取数坑（实测）：显式传 fields 会丢失盘口</b><br>
+  同一时间同一股票，<code>?secid=0.002918&fields=f11,...,f40,f43</code> → 只返回 <code>f43/f47/f48</code>，五档全丢；
+  而 <b>不传 fields</b>（默认全集）→ 五档完整返回且与腾讯完全一致（买一 10.99/501 手、卖五 11.04/91 手）。<br>
+  → 结论：<b>取盘口/全量快照时不要拼 fields，用默认接口</b>；需要额外指标（资金流/概念/52周）时再单独拼 fields 请求，两套并存。
+</div>
+
+<h2 data-page-node-id="pd5A2zgrBqAFcwGdgZz8A8">⑤ 可用接口地址速查（全部实测）</h2>
+<pre data-page-node-id="qNeDN7nUtRM5GdpJqkNQRy"><code data-page-node-id="XrAFQy03exEoNUu6Iwi352">【东财】
+实时快照(字段自选)  https://push2.eastmoney.com/api/qt/stock/get?secid=0.002918&invt=2&fltt=2&fields=f43,f44,...
+历史K线(含分钟)     https://push2his.eastmoney.com/api/qt/stock/kline/get?secid=0.002918&klt=101&fqt=1&lmt=120&end=20500101&fields1=f1..f6&fields2=f51..f61
+当日分时(带均价)    https://push2his.eastmoney.com/api/qt/stock/trends2/get?secid=0.002918&iscca=1&fields1=f1,f2,f3,f7,f8&fields2=f51..f58&ndays=1
+资金流(日/分级)     https://push2his.eastmoney.com/api/qt/stock/fflow/kline/get?secid=0.002918&klt=101&lmt=0&fields1=f1,f2,f3,f7&fields2=f51..f65
+逐笔(当日50笔/页)   https://push2ex.eastmoney.com/getStockFenShi?pagesize=50&page=1&code=002918&ut=7eea3edcaed734bea9cbfc24409ed989&dpt=wzzerostock
+secid 规则: 沪=1.XXXXXX 深=0.XXXXXX 北交=0.92XXXX
+
+【腾讯】
+实时快照(88字段)    https://qt.gtimg.cn/q=sz002918,sh600519          (GBK)
+日K前复权           https://web.ifzq.gtimg.cn/appstock/app/fqkline/get?param=sz002918,day,,,320,qfq
+分钟K               https://web.ifzq.gtimg.cn/appstock/app/kline/mkline?param=sz002918,m5,,120
+当日分时(近5日)     https://web.ifzq.gtimg.cn/appstock/app/day/query?code=sz002918   ← 注意: 这是分时不是逐笔
+代码规则: sh/sz/bj 前缀
+
+【新浪】(快照必须带 Referer: https://finance.sina.com.cn)
+实时快照(33字段)    https://hq.sinajs.cn/list=sz002918,sh600519      (GBK)
+日K/分钟K(不复权)   https://quotes.sina.cn/cn/api/json_v2.php/CN_MarketDataService.getKLineData?symbol=sz002918&scale=240&ma=no&datalen=250   (scale=240日/60/30/15/5/1)
+历史资金流(日级)    https://vip.stock.finance.sina.com.cn/quotes_service/api/json_v2.php/MoneyFlow.ssl_qsfx_lscjfb?page=1&num=20&sort=opendate&asc=0&daima=sz002918
+代码规则: sh/sz/bj 前缀</code></pre>
+
+<!-- ============ 风控实测 ============ -->
+<h2 data-page-node-id="BeaP82bH1ShzdtPsMbXJo5">⑥ 风控与稳定性实测</h2>
+<table data-page-node-id="SnuuXVHcB5X8vv4wSXWWB5">
+  <tr data-page-node-id="DqRcUiDPXXBMzZuG221SnC"><th style="width:120px" data-page-node-id="WAp7t3BqCQvJbo2xR3QxKr">源</th><th data-page-node-id="C1FWzxGSdyiyQzLQO7vKcm">实测现象</th><th data-page-node-id="LmE1jvD27RKZ34C3l0wxxy">对策</th></tr>
+  <tr data-page-node-id="AKUUbhLD06x2F3PEWTMFBK"><td data-page-node-id="i4NEiEGdfJ4PfR9IDkrRDa"><span class="tag t-em" data-page-node-id="Ore5wkRNyvkpR7xYEQ4Cuf">东财</span></td><td data-page-node-id="iRETkQazZRzUe1rbF2b8Bo">第一轮 3 个请求成功后，整个 push2/push2his 家族全部 RemoteDisconnected；冷却 35s + 降到 6s 间隔均无效；<b data-page-node-id="ljpTCMUKnbl5WdcY0zCLBZ">换网络出口（异构通道）立即恢复</b></td><td data-page-node-id="Y37AHBLHzNSWj2OGUC971a">轮询间隔 ≥3-5s、UA 稳定、不要裸连并发；用户本机 astock_monitor 正常是因为单客户端低频；一旦触发封禁，换 IP 才能解</td></tr>
+  <tr data-page-node-id="6xJXK91y22fFVz7uNp7iFA"><td data-page-node-id="CgmVVS6Iw1WoXtZ4oh8rLA"><span class="tag t-tx" data-page-node-id="ztVVDFVEkt01kEl33p5MEL">腾讯</span></td><td data-page-node-id="jIrH8ToEoI5h6sCWJ5V3nw">三轮共 10+ 次请求零封禁零风控（仅 1 次代理隧道 502，与本源无关）</td><td data-page-node-id="PqSO8KzT8DvVptNxaEjhAp">可作为高频容灾首选</td></tr>
+  <tr data-page-node-id="H8bWYOgpB4sO5HLOWt570h"><td data-page-node-id="eKvMqp3aj29XYdKw9aAgl4"><span class="tag t-sina" data-page-node-id="5iVvnzi3ar0s8SeLUw3Ejc">新浪</span></td><td data-page-node-id="SC8fAJ0GvpsYEKlxTSWWqZ">无 Referer 直接 403 Forbidden（实测）；带 Referer 后稳定；部分老接口（分笔 getDetailData、ff_ 资金流）已下线</td><td data-page-node-id="ranyHztRcHKbWlOrWIbMmD">每个请求固定带 Referer 头；不要依赖其已死接口</td></tr>
+</table>
+
+<!-- ============ 集成建议 ============ -->
+<h2 data-page-node-id="XOSYcpFIZTku5meuCfHKtQ">⑦ 对 astock_monitor 多源架构的具体建议</h2>
+<div class="grid" data-page-node-id="l0JJUhJ83FegFNk4Jm0iXt">
+  <div class="card" data-page-node-id="AAHWUCJQCo8xYfZzeFB6MA">
+    <h3 data-page-node-id="PL1uSxlLyhsx40zQ2BV6sx">主备分工</h3>
+    <table style="margin:0" data-page-node-id="usG2IieUCyyRTCcaPC7XU8">
+      <tr data-page-node-id="pT0ZGU4esVYf4RwLWurBQ9"><th data-page-node-id="tPewwYsswSFiFPEsxDSeaR">角色</th><th data-page-node-id="WhzPw1IAinjF8UIGCFrQsl">源</th><th data-page-node-id="AET7IxPrW8pwIZ9CSOJZba">理由</th></tr>
+      <tr data-page-node-id="JfoQ7YGR6xBOBPfnEXPCLp"><td data-page-node-id="UUt54w4UiORROX8UPBDqEJ">主源</td><td data-page-node-id="RANGAlklr9vPRgH5jCNorz"><span class="tag t-em" data-page-node-id="Wq1nPR529UxRRCkxHCvyQh">东财</span></td><td data-page-node-id="mdK3IMzvoXhDPz8Fx3pIVo">唯一同时具备：逐笔(漏量检测核心) + 资金流 + 盘后定价 + 涨跌停直出 + 字段自选</td></tr>
+      <tr data-page-node-id="6mmmwkQETuDrkv0dQ9XLKO"><td data-page-node-id="Lf7l2qWbrFO262n16s1ASb">容灾1</td><td data-page-node-id="d7AZktCllTyq4BuxMEhbNo"><span class="tag t-tx" data-page-node-id="DNRYBpbEq3m062rNdMpjdo">腾讯</span></td><td data-page-node-id="isIlRry56DElIBNIaJ1i9W">零风控 + 88 字段单请求覆盖 PE/量比/委差/涨跌停，几乎不用组合请求</td></tr>
+      <tr data-page-node-id="OIH0Twi1rdntdbtuHPo1NS"><td data-page-node-id="FW87f1CJFklDN6Qg8FdcwH">容灾2</td><td data-page-node-id="yB6zSMdHn45QEO8azEBNUW"><span class="tag t-sina" data-page-node-id="nQ8IMP31ITBFRvtuil6ey6">新浪</span></td><td data-page-node-id="VmThH06AHRxeertWEFBAVO">精确股数成交量可做量能校验；带宽最小</td></tr>
+    </table>
+  </div>
+  <div class="card" data-page-node-id="scTnqz5c6D112B8YmpnfS9">
+    <h3 data-page-node-id="yEJbBoqYc5GU5MDNKFnkuy">必须做的归一化层</h3>
+    <ul style="margin:4px 0 0; padding-left: 18px;" data-page-node-id="Q0i2fd3AZXqCeXY3O6um5x">
+      <li data-page-node-id="NZfyINGIyCP1VnwB10Nv3m"><b data-page-node-id="GNk9miLrHBBXk9yzh46nYW">量</b>：统一转「股」← 新浪已是股，东财/腾讯手 ×100（有取整损失，主用东财时记录被抹掉的小数）</li>
+      <li data-page-node-id="OTW0RBaqvP7oJPuamtAbHh"><b data-page-node-id="URhzfQUrpdj1E4xoQM6uOs">额</b>：统一转「元 float」← 腾讯禁用第 37 位（万级整数），用第 35 或 57 位</li>
+      <li data-page-node-id="Q8SL4eI90k6gZ8a0NkWQbE"><b data-page-node-id="fC47uxU4pCNPPnRuQdWJkh">时间</b>：统一用行情归属时间，腾讯第 30 位只做链路健康度指标</li>
+      <li data-page-node-id="PnSEiBCEmE7MGmStY5sIw0"><b data-page-node-id="Ji5a0HYmr4czlsZng8FkHC">盘口</b>：腾讯手 / 新浪股 ×0.01 互转</li>
+    </ul>
+  </div>
+  <div class="card" data-page-node-id="5Swat3UiIYr3u5ZMFO4Hgc">
+    <h3 data-page-node-id="oAp68wT8IJYWfN8PbLc6Q2">漏量检测的硬约束</h3>
+    <ul style="margin:4px 0 0; padding-left: 18px;" data-page-node-id="4lpbK3x4c0D5dVbtPukwHW">
+      <li data-page-node-id="JG32gVGO1f4VXEW8HQ4n30">逐笔只有东财有且<b data-page-node-id="e3mlVsuoownCQAMFcaYZCB">只当日、50笔/页、无历史回放</b>（实测盘后 data:null）——轮询间隔必须 ≤3s，漏抓即永久丢失</li>
+      <li data-page-node-id="JCWo5521uS1niPgH1mLJjk">封单额：东财 f?f 系列 + 腾讯第 9-28 位挂单量都可以算，建议双源互验防单源挂单抖动</li>
+      <li data-page-node-id="zx6iKBivtH3OVxBaDUCToA">东财盘口<b data-page-node-id="QfenCjNoE7mC2SRvqBD2KQ">收盘后为空</b>（实测），盘后调试盘口逻辑请切腾讯/新浪</li>
+    </ul>
+  </div>
+  <div class="card" data-page-node-id="7UKixbzUZdNBEqT1sHJwEA">
+    <h3 data-page-node-id="wGea2C151Od3FBujMC1KSy">典型字段映射（快照核心）</h3>
+    <table style="margin:0" data-page-node-id="Nd33nmkFzT1LMDoS3lJowo">
+      <tr data-page-node-id="UNnCrGgxkTkcjOMuDMJEZ6"><th data-page-node-id="CfjmhtXsgUCpIStEcjKRLx">语义</th><th data-page-node-id="63qLJ95go6FcFaGou5TtTg">东财</th><th data-page-node-id="C02YO2H2jmQkRLUs4tELfu">腾讯位</th><th data-page-node-id="FcIZ3tQwuErpDzSzOA72Pq">新浪位</th></tr>
+      <tr data-page-node-id="2Js3atfwuL3D2hn32tOfB9"><td data-page-node-id="SWZXRi0RqOBZyl4Dds8jZn">最新价</td><td data-page-node-id="GnCPznzJMYICTb2tl952i2">f43</td><td data-page-node-id="4wqGD61H5URJgIgBocSggC">3</td><td data-page-node-id="K75TkAWSTIsYmN0kBps7K5">3</td></tr>
+      <tr data-page-node-id="LdbYd0mgcpPAbzWbimID7T"><td data-page-node-id="rVoxjtHBmObYoNpmJGp39F">成交量</td><td data-page-node-id="n7gLRU3XivaZInCFvDJlX0">f47(手)</td><td data-page-node-id="dEQEEvNrJy0lFcxdB8hmC6">6(手)</td><td data-page-node-id="1O0PsR6b05FAgS8jd92uDG">8(股)</td></tr>
+      <tr data-page-node-id="0PXhvelcPNpJzp4lVTJspq"><td data-page-node-id="LZezfqTdRiMPT3CgwzrDik">成交额</td><td data-page-node-id="nTiCEBfYJN9XA1G2U7Eecu">f48(元)</td><td data-page-node-id="6l8x0YOsEtJlXgNirHsnNH">35/57(元)</td><td data-page-node-id="Me65oinOZURV524F603Jex">9(元)</td></tr>
+      <tr data-page-node-id="ZTQVLjHzD7tkKPTmh0Lqv6"><td data-page-node-id="V7udY4ve2Q7NoG4EA4G1Y9">涨停/跌停</td><td data-page-node-id="L3qFYcURcES4jkFNN3pWlP">f51/f52</td><td data-page-node-id="Bag8stLez9OXWLuSgyXLVp">47/48</td><td data-page-node-id="2QlJM8X0dzsa9DjAgQNakS">自算</td></tr>
+      <tr data-page-node-id="lFcVIiLjvTm3LoCAyJYTiS"><td data-page-node-id="t2ubbJcBvU7xshpERZeSIF">买一价/量</td><td data-page-node-id="uZD4cFWv8wWxxxEok4MZsx">f31/f32</td><td data-page-node-id="H2hJgqYYCRvRXx3VnTJhyn">9/10(手)</td><td data-page-node-id="sfu2lOdfOzBjCaXIRBp8N8">11/10(股)</td></tr>
+      <tr data-page-node-id="fk01p4GRKWzKle8zK3AHrk"><td data-page-node-id="PxDPj2Oql5QYt8iKjAA9HW">行情时间</td><td data-page-node-id="vbf4xEcVgiAFyclZoV1IxK">f86</td><td data-page-node-id="F0cKjgPYGcCX9YZTc5l4tG">30</td><td data-page-node-id="kTEHY1QneG7SYvylH0tu0k">30,31</td></tr>
+    </table>
+  </div>
+</div>
+
+<p class="note" style="margin-top:26px" data-page-node-id="pA0vKpt6DDpw9DLQ8EnyTP">原始探测数据：probe_results.json / probe_fix_results.json / probe_r3_results.json（同目录），探测脚本 probe_sources.py / probe_fix.py / probe_r3.py 可随时复跑。</p>
+
+</div>
+</body>
+</html>
